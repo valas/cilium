@@ -89,6 +89,9 @@ github.com/cilium/arping v1.0.1-0.20190728065459-c5eaf8d7a710 h1:htVjkajqUYy6JmL
 github.com/cilium/arping v1.0.1-0.20190728065459-c5eaf8d7a710/go.mod h1:ohfPr9hSb4vRsw5UEjCs3OoWD38U0z8EfSgZPbIe/+M=
 github.com/cilium/client-go v0.0.0-20191205103607-3544a82f6ef2 h1:wroolr0Jmgn7lN2OCKXofqiF/v99A9RGcZonOnVH65U=
 github.com/cilium/client-go v0.0.0-20191205103607-3544a82f6ef2/go.mod h1:42lN0EZwd9wIA8wfQO/IqmKYCAFoCAfXDIaNi+kJUWU=
+github.com/cilium/client-go v10.0.0+incompatible h1:e9ESmrC6uRFaonogVzBCIh1AXYsdD6Xm+/tjLvhxuwc=
+github.com/cilium/dns v1.1.3 h1:vq9+rwcki0DsmhAYsjSrKhwzXqRQJqZzgIw11VmMB3E=
+github.com/cilium/dns v1.1.3/go.mod h1:cXN7jgo+gsGlNvQ7Vqu2ELdc3f7i7PPgupHqSkLzzBo=
 github.com/cilium/dns v1.1.4-0.20190417235132-8e25ec9a0ff3 h1:wenYMyWJ08dgEUUj0Ija8qdK/V9vL3ThAD5sjOYlFlg=
 github.com/cilium/dns v1.1.4-0.20190417235132-8e25ec9a0ff3/go.mod h1:cXN7jgo+gsGlNvQ7Vqu2ELdc3f7i7PPgupHqSkLzzBo=
 github.com/cilium/ebpf v0.0.0-20191113100448-d9fb101ca1fb h1:bQ0NJ9dAB8vsw7ffajBDX/7Wr64BdLWeJkYY36UkeRY=

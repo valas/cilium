@@ -311,8 +311,6 @@ func NewDaemon(ctx context.Context, dp datapath.Datapath) (*Daemon, *endpointRes
 		nodeDiscovery:    nd,
 	}
 
-	d.svc = service.NewService(&d)
-
 	d.identityAllocator = cache.NewCachingIdentityAllocator(&d)
 	d.policy = policy.NewPolicyRepository(d.identityAllocator.GetIdentityCache())
 
@@ -328,6 +326,8 @@ func NewDaemon(ctx context.Context, dp datapath.Datapath) (*Daemon, *endpointRes
 		Allocator: d.identityAllocator,
 	})
 	d.endpointManager.InitMetrics()
+
+	d.svc = service.NewService(&d, d.endpointManager)
 
 	d.k8sWatcher = watchers.NewK8sWatcher(
 		d.endpointManager,
