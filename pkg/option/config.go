@@ -1684,10 +1684,9 @@ func (c *DaemonConfig) Populate() {
 	c.ToFQDNsEnablePoller = viper.GetBool(ToFQDNsEnablePoller)
 	c.ToFQDNsEnablePollerEvents = viper.GetBool(ToFQDNsEnablePollerEvents)
 	c.ToFQDNsMaxIPsPerHost = viper.GetInt(ToFQDNsMaxIPsPerHost)
-	userSetMinTTL := viper.GetInt(ToFQDNsMinTTL)
 	switch {
-	case userSetMinTTL != 0: // set by user
-		c.ToFQDNsMinTTL = userSetMinTTL
+	case viper.IsSet(ToFQDNsMinTTL): // set by user
+		c.ToFQDNsMinTTL = viper.GetInt(ToFQDNsMinTTL)
 	case c.ToFQDNsEnablePoller:
 		c.ToFQDNsMinTTL = defaults.ToFQDNsMinTTLPoller
 	default:
