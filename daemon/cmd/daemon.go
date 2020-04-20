@@ -396,12 +396,6 @@ func NewDaemon(ctx context.Context, dp datapath.Datapath) (*Daemon, *endpointRes
 	bootstrapStats.k8sInit.Start()
 	k8s.Configure(option.Config.K8sAPIServer, option.Config.K8sKubeConfigPath, defaults.K8sClientQPSLimit, defaults.K8sClientBurst)
 	bootstrapStats.k8sInit.End(true)
-
-	// Fail early if CRD-backed identity store is requested but K8s is disabled.
-	if option.Config.IdentityAllocationMode == option.IdentityAllocationModeCRD && !k8s.IsEnabled() {
-		log.WithError(err).Fatal("CRD-backed indentity store requested but K8s is disabled.")
-	}
-
 	d.k8sWatcher.RunK8sServiceHandler()
 	treatRemoteNodeAsHost := option.Config.AlwaysAllowLocalhost() && !option.Config.EnableRemoteNodeIdentity
 	policyApi.InitEntities(option.Config.ClusterName, treatRemoteNodeAsHost)
