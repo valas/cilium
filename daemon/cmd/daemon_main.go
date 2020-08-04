@@ -506,6 +506,9 @@ func init() {
 		option.KubeProxyReplacementStrict, option.KubeProxyReplacementDisabled))
 	option.BindEnv(option.KubeProxyReplacement)
 
+	flags.Int(option.KubeProxyHealthPort, defaults.KubeProxyHealthPort, "TCP port for emulated kube-proxy health service")
+	option.BindEnv(option.KubeProxyHealthPort)
+
 	flags.Bool(option.EnableHostPort, true, fmt.Sprintf("Enable k8s hostPort mapping feature (requires enabling %s)", option.EnableNodePort))
 	option.BindEnv(option.EnableHostPort)
 
@@ -1372,7 +1375,15 @@ func runDaemon() {
 
 	metricsErrs := initMetrics()
 
+	// Start Cilium agent health service.
 	d.startAgentHealthHTTPService(fmt.Sprintf("localhost:%d", option.Config.AgentHealthPort))
+	if option.Config.KubeProxyReplacement == option.KubeProxyReplacementStrict {
+		// Start kube-proxy health service. Used by load balancer health checking
+		// systems to determine if the node alive. Unlike Cilium agent health
+		// service above, this service listens on all interfaces.
+		d.startKubeProxyHealthHTTPService(
+			fmt.Sprintf(":%d", option.Config.KubeProxyHealthPort))
+	}
 
 	bootstrapStats.initAPI.Start()
 	srv := server.NewServer(d.instantiateAPI())
