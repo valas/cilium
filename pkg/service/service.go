@@ -17,6 +17,8 @@ package service
 import (
 	"fmt"
 	"net"
+	"sync/atomic"
+	"time"
 
 	"github.com/cilium/cilium/pkg/bpf"
 	"github.com/cilium/cilium/pkg/counter"
@@ -29,6 +31,7 @@ import (
 	nodeTypes "github.com/cilium/cilium/pkg/node/types"
 	"github.com/cilium/cilium/pkg/option"
 	"github.com/cilium/cilium/pkg/service/healthserver"
+	"k8s.io/apimachinery/pkg/util/clock"
 
 	"github.com/sirupsen/logrus"
 )
@@ -125,6 +128,12 @@ type Service struct {
 	monitorNotify monitorNotify
 
 	lbmap LBMap
+
+	// Clock for lastUpdated timestamps.
+	clock clock.Clock
+	// Last service update time. Reported to LB health probers if Cilium
+	// is not healthy.
+	lastUpdatedTs atomic.Value
 }
 
 // NewService creates a new instance of the service handler.
@@ -134,7 +143,7 @@ func NewService(monitorNotify monitorNotify) *Service {
 	if option.Config.EnableHealthCheckNodePort {
 		localHealthServer = healthserver.New()
 	}
-	return &Service{
+	s := &Service{
 		svcByHash:       map[string]*svcInfo{},
 		svcByID:         map[lb.ID]*svcInfo{},
 		backendRefCount: counter.StringCounter{},
@@ -142,7 +151,18 @@ func NewService(monitorNotify monitorNotify) *Service {
 		monitorNotify:   monitorNotify,
 		healthServer:    localHealthServer,
 		lbmap:           &lbmap.LBBPFMap{},
+		clock:           clock.RealClock{},
 	}
+	s.lastUpdatedTs.Store(s.clock.Now())
+	return s
+}
+
+func (s *Service) GetLastUpdatedTs() time.Time {
+	var ts time.Time
+	if val := s.lastUpdatedTs.Load(); val != nil {
+		ts = val.(time.Time)
+	}
+	return ts
 }
 
 // InitMaps opens or creates BPF maps used by services.
@@ -290,6 +310,8 @@ func (s *Service) UpsertService(
 
 	s.notifyMonitorServiceUpsert(svc.frontend, svc.backends,
 		svc.svcType, svc.svcTrafficPolicy, svc.svcName, svc.svcNamespace)
+	// Done with the update. Reset the timestamp.
+	s.lastUpdatedTs.Store(s.clock.Now())
 
 	return new, lb.ID(svc.frontend.ID), nil
 }

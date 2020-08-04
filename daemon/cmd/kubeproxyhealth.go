@@ -17,10 +17,13 @@ package cmd
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/cilium/cilium/api/v1/models"
+	"k8s.io/apimachinery/pkg/util/clock"
 )
 
 // startKubeProxyHealthHTTPService registers a handler function for the /healthz
@@ -37,7 +40,7 @@ func (d *Daemon) startKubeProxyHealthHTTPService(addr string) {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/healthz", healthzHandler{d: d})
+	mux.Handle("/healthz", healthzHandler{d: d, clock: clock.RealClock{}})
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: mux,
@@ -55,7 +58,8 @@ func (d *Daemon) startKubeProxyHealthHTTPService(addr string) {
 }
 
 type healthzHandler struct {
-	d *Daemon
+	d     *Daemon
+	clock clock.Clock
 }
 
 func (h healthzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -67,12 +71,20 @@ func (h healthzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return false
 	}
 
-	statusCode := http.StatusOK
+	// Kubeproxy always returns current time.
+	currentTs := h.clock.Now()
+	// Kubeproxy returns 'lastUpdated' as current time if service is healthy.
+	var lastUpdateTs time.Time
+	lastUpdateTs := currentTs
 	// We piggy back here on Cilium daemon health. If Cilium is healthy, we can
 	// reasonably assume that the node networking is ready.
 	sr := h.d.getStatus(true)
+	statusCode := http.StatusOK
 	if isUnhealthy(&sr) {
+		// If unhealthy, return the timestamp of the last update.
+		lastUpdateTs := h.d.svc.GetLastUpdatedTs()
 		statusCode = http.StatusInternalServerError
 	}
 	w.WriteHeader(statusCode)
+	fmt.Fprintf(w, `{"lastUpdated": %q,"currentTime": %q}`, lastUpdateTs, currentTs)
 }
