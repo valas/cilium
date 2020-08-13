@@ -211,6 +211,11 @@ const (
 	// KeepConfig when restoring state, keeps containers' configuration in place
 	KeepConfig = "keep-config"
 
+	// KubeProxyHealthPort is the TCP port for kubeproxy healthchecks.
+	// Cilium will respond to these healthchecks if it runs in kubeproxy
+	// replacement mode.
+	KubeProxyHealthPort = "kubeproxy-health-port"
+
 	// KVStore key-value store type
 	KVStore = "kvstore"
 
@@ -1625,6 +1630,11 @@ type DaemonConfig struct {
 	// KVstoreConnectivityTimeout is the timeout when performing kvstore operations
 	KVstoreConnectivityTimeout time.Duration
 
+	// KubeProxyHealthPort is the TCP port for kubeproxy healthchecks.
+	// Cilium will respond to these healthchecks if it runs in kubeproxy
+	// replacement mode.
+	KubeProxyHealthPort int
+
 	// IPAllocationTimeout is the timeout when allocating CIDRs
 	IPAllocationTimeout time.Duration
 
@@ -1907,6 +1917,7 @@ var (
 		ToFQDNsMaxIPsPerHost:         defaults.ToFQDNsMaxIPsPerHost,
 		KVstorePeriodicSync:          defaults.KVstorePeriodicSync,
 		KVstoreConnectivityTimeout:   defaults.KVstoreConnectivityTimeout,
+		KubeProxyHealthPort:          defaults.KubeProxyHealthPort,
 		IPAllocationTimeout:          defaults.IPAllocationTimeout,
 		IdentityChangeGracePeriod:    defaults.IdentityChangeGracePeriod,
 		FixedIdentityMapping:         make(map[string]string),

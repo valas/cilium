@@ -17,6 +17,8 @@ package service
 import (
 	"fmt"
 	"net"
+	"sync/atomic"
+	"time"
 
 	"github.com/cilium/cilium/pkg/bpf"
 	"github.com/cilium/cilium/pkg/counter"
@@ -125,6 +127,9 @@ type Service struct {
 	monitorNotify monitorNotify
 
 	lbmap LBMap
+
+	// Last successful update timestamp.
+	lastUpdateTs atomic.Value
 }
 
 // NewService creates a new instance of the service handler.
@@ -134,7 +139,7 @@ func NewService(monitorNotify monitorNotify) *Service {
 	if option.Config.EnableHealthCheckNodePort {
 		localHealthServer = healthserver.New()
 	}
-	return &Service{
+	svc := Service{
 		svcByHash:       map[string]*svcInfo{},
 		svcByID:         map[lb.ID]*svcInfo{},
 		backendRefCount: counter.StringCounter{},
@@ -143,6 +148,16 @@ func NewService(monitorNotify monitorNotify) *Service {
 		healthServer:    localHealthServer,
 		lbmap:           &lbmap.LBBPFMap{},
 	}
+	svc.lastUpdateTs.Store(time.Now())
+	return &svc
+}
+
+func (s *Service) GetCurrentTs() time.Time {
+	return time.Now()
+}
+
+func (s *Service) GetLastUpdateTs() time.Time {
+	return s.lastUpdateTs.Load().(time.Time)
 }
 
 // InitMaps opens or creates BPF maps used by services.

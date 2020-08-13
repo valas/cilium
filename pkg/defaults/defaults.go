@@ -208,6 +208,11 @@ const (
 	// AlignCheckerName is the BPF object name for the alignchecker.
 	AlignCheckerName = "bpf_alignchecker.o"
 
+	// The default value for option.KubeProxyHealthPort. This value must
+	// reflect ProxyHealthzPort here:
+	// https://github.com/kubernetes/kubernetes/blob/462742fcf6732abf0c630422320b3972575bae59/pkg/master/ports/ports.go
+	KubeProxyHealthPort = 10256
+
 	// KVstorePeriodicSync is the default kvstore periodic sync interval
 	KVstorePeriodicSync = 5 * time.Minute
 
